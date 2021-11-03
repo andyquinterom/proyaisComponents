@@ -142,6 +142,13 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
                   cache_call(
                     fn = pull_distinct,
                     cache = cache,
+                    cache_depends = {
+                      if ("tbl_lazy" %in% class(tbl_input())) {
+                        list(dbplyr::sql_render(tbl_input()))
+                      } else {
+                        list(tbl_input())
+                      }
+                    },
                     cache_params = list(col = columna_seleccionada),
                     non_cache_params = list(
                       data = tbl_input()
