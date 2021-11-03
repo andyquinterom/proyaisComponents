@@ -1,10 +1,10 @@
 #' @export
 filtros_discretos_ui <- function(id) {
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   tags$div(
     class = "filtros",
-    actionGroupButtons(
+    shinyWidgets::actionGroupButtons(
       inputIds = ns(c("filtros_char_add", "filtros_char_rm")),
       labels = c("+", "-"),
       size = "sm"
@@ -23,15 +23,15 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
   max_char = 20) {
 
   if (missing(tbl_name)) {
+    tbl_name <- ""
     tbl_input <- tbl_reactive
-  }
-  if (missing(tbl_reactive)) {
+  } else {
     tbl_input <- reactive({
-      tbl(conn, tbl_name)
+      dplyr::tbl(conn, tbl_name)
     })
   }
 
-  ns <- NS(id)
+  ns <- shiny::NS(id)
 
   moduleServer(
     id = id,
@@ -44,7 +44,7 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
         n_char = 0,
         selected_char = lapply(1:max_char, function(x) "Ninguno"),
         selected_num = lapply(1:max_char, function(x) "Ninguno"),
-        colnames = colnames(tbl(conn, tbl_name))
+        colnames = colnames(tbl_input())
       )
 
       observe({
@@ -138,8 +138,8 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
               choices = {
                 columna_seleccionada <-
                   input[[paste0("filtro_char_columna_", i)]]
-                if (columna_seleccionada %notin% c("Ninguno", "")) {
-                  cache_call(
+                if (!columna_seleccionada %in% c("Ninguno", "")) {
+                  shinyCache::cache_call(
                     fn = pull_distinct,
                     cache = cache,
                     cache_depends = {
@@ -170,7 +170,7 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
           lapply(
             X = 1:filtros$n_char,
             FUN = function(i) {
-              return(input[[paste0("filtro_char_columna_", i)]] %notin%
+              return(!input[[paste0("filtro_char_columna_", i)]] %in%
                 c("Ninguno", ""))
             }
           )
@@ -185,10 +185,10 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
             columna <- input[[paste0("filtro_char_columna_", i)]]
             if (input[[paste0("filtro_char_incluir_", i)]]) {
               tabla <<- tabla %>%
-                filter(!!as.name(columna) %in% valores_filtro)
+                dplyr::filter(!!as.name(columna) %in% valores_filtro)
             } else {
               tabla <<- tabla %>%
-                filter(!(!!as.name(columna) %in% valores_filtro))
+                dplyr::filter(!(!!as.name(columna) %in% valores_filtro))
             }
           }
         )
@@ -211,10 +211,28 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
 }
 
 addPreserveSearch <- function(x) {
-  preserve_search <- htmlDependency(
+  preserve_search <- htmltools::htmlDependency(
     "preserve_search", "1.0", "deps",
     script = "preserve_search.js",
     stylesheet = "filtros.css"
   )
-  attachDependencies(x, c(htmlDependencies(x), list(preserve_search)))
+  htmltools::attachDependencies(
+    x,
+    c(htmltools::htmlDependencies(x), list(preserve_search))
+  )
+}
+
+counter <- function() {
+  x <- 0
+  function() {
+    x <<- x + 1
+    return(x)
+  }
+}
+
+pull_distinct <- function(data, col) {
+  data %>%
+    dplyr::select(!!rlang::sym(col)) %>%
+    dplyr::distinct() %>%
+    dplyr::pull(!!rlang::sym(col))
 }
