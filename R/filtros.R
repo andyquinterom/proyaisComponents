@@ -1,3 +1,7 @@
+#' UI para filtros discretos
+#'
+#' @param id ID del módulo
+#' @return Objeto tags para UI de una aplicación Shiny
 #' @export
 filtros_discretos_ui <- function(id) {
   ns <- shiny::NS(id)
@@ -18,9 +22,18 @@ filtros_discretos_ui <- function(id) {
 
 }
 
+#' Servidor para filtros discretos
+#'
+#' @param tbl_reactive Reactive con un tibble o lazy tibble
+#' @param tbl_name Nombre de tabla en base de datos
+#' @param id ID del módulo
+#' @param cache ReactiveValues para el cache de shinyCache
+#' @param conn Conexión a DBI en caso de pasar tbl_name
+#' @param max_char Número de filtros máximo
+#' @return Objeto tags para UI de una aplicación Shiny
 #' @export
-filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache, conn,
-  max_char = 20) {
+filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
+  conn = NULL, max_char = 20) {
 
   if (missing(tbl_name)) {
     tbl_name <- ""
