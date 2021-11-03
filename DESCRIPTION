@@ -1,0 +1,23 @@
+Package: proyaisComponents
+Type: Package
+Title: proyaisComponents
+Version: 0.1.0
+Author: Andrés Felipe Quintero
+Maintainer: Andrés Felipe Quintero <afquinteromoreano@gmail.com>
+Description: Componentes para aplicaciones Shiny de ProyAIS.
+License: AGPLv3
+Encoding: UTF-8
+Imports: 
+    shiny,
+    digest,
+    glue,
+    dplyr,
+    tidyr,
+    DBI,
+    RPostgres,
+    dbplyr,
+    tibble,
+    purrr,
+    shinyWidgets,
+    htmltools
+RoxygenNote: 7.1.1
