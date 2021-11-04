@@ -36,7 +36,6 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
   conn = NULL, max_char = 20) {
 
   if (missing(tbl_name)) {
-    tbl_name <- ""
     tbl_input <- tbl_reactive
   } else {
     tbl_input <- reactive({
