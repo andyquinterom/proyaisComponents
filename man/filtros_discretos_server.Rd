@@ -4,31 +4,17 @@
 \alias{filtros_discretos_server}
 \title{Servidor para filtros discretos}
 \usage{
-filtros_discretos_server(
-  tbl_reactive,
-  tbl_name,
-  id,
-  cache,
-  conn = NULL,
-  max_char = 20
-)
+filtros_discretos_server(id, datos, cache, max_char = 20)
 }
 \arguments{
-\item{tbl_reactive}{Reactive con un tibble o lazy tibble}
-
-\item{tbl_name}{Nombre de tabla en base de datos}
-
 \item{id}{ID del módulo}
+
+\item{datos}{Objecto de class "tabla mutable"}
 
 \item{cache}{ReactiveValues para el cache de shinyCache}
 
-\item{conn}{Conexión a DBI en caso de pasar tbl_name}
-
 \item{max_char}{Número de filtros máximo}
 }
-\value{
-Objeto tags para UI de una aplicación Shiny
-}
 \description{
-Servidor para filtros discretos
+Filtros se aplican con un trigger con el ID del módulo.
 }

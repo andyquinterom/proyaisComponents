@@ -24,24 +24,13 @@ filtros_discretos_ui <- function(id) {
 
 #' Servidor para filtros discretos
 #'
-#' @param tbl_reactive Reactive con un tibble o lazy tibble
-#' @param tbl_name Nombre de tabla en base de datos
 #' @param id ID del módulo
+#' @param datos Objecto de class "tabla mutable"
 #' @param cache ReactiveValues para el cache de shinyCache
-#' @param conn Conexión a DBI en caso de pasar tbl_name
 #' @param max_char Número de filtros máximo
-#' @return Objeto tags para UI de una aplicación Shiny
+#' @description Filtros se aplican con un trigger con el ID del módulo.
 #' @export
-filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
-  conn = NULL, max_char = 20) {
-
-  if (missing(tbl_name)) {
-    tbl_input <- tbl_reactive
-  } else {
-    tbl_input <- reactive({
-      dplyr::tbl(conn, tbl_name)
-    })
-  }
+filtros_discretos_server <- function(id, datos, cache, max_char = 20) {
 
   ns <- shiny::NS(id)
 
@@ -56,7 +45,7 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
         n_char = 0,
         selected_char = lapply(1:max_char, function(x) "Ninguno"),
         selected_num = lapply(1:max_char, function(x) "Ninguno"),
-        colnames = colnames(tbl_input())
+        colnames = colnames(datos$base)
       )
 
       observe({
@@ -65,7 +54,7 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
             selector = paste0("#", ns("filtros_char")),
             where = "beforeEnd",
             ui = tags$div(
-              id = paste0("filtro_char_", filtros$n_char + 1),
+              id = ns(paste0("filtro_char_", filtros$n_char + 1)),
               fluidRow(
                 column(
                   width = 5,
@@ -125,8 +114,14 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
 
       observe({
         if (filtros$n_char > 1) {
+          updateSelectizeInput(
+            inputId = paste0("filtro_char_columna_", filtros$n_char),
+            selected = "Ninguno"
+          )
           removeUI(
-            selector = paste0("#filtro_char_", filtros$n_char)
+            selector = glue::glue(
+              "#{ ns(paste0('filtro_char_', filtros$n_char)) }"
+            )
           )
           filtros$n_char <- filtros$n_char - 1
         } else {
@@ -141,7 +136,7 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
       lapply(
         X = 1:max_char,
         FUN = function(i) {
-          observeEvent(input[[paste0("filtro_char_columna_", i)]], {
+          observe({
             updateSelectizeInput(
               session = session,
               inputId = paste0("filtro_char_valor_", i),
@@ -155,15 +150,11 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
                     fn = pull_distinct,
                     cache = cache,
                     cache_depends = {
-                      if ("tbl_lazy" %in% class(tbl_input())) {
-                        list(dbplyr::sql_render(tbl_input()))
-                      } else {
-                        list(tbl_input())
-                      }
+                      list(datos$query())
                     },
                     cache_params = list(col = columna_seleccionada),
                     non_cache_params = list(
-                      data = tbl_input()
+                      data = datos$base
                     ),
                   )
                 } else {
@@ -171,52 +162,39 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
                 }
               }
             )
-          })
+          }) %>%
+            bindEvent(input[[paste0("filtro_char_columna_", i)]])
         }
       )
 
-      tbl_return <- reactive({
-        tabla <- tbl_input()
-        inputs_filtros_char <- c()
-        inputs_filtros_char <- unlist(
-          lapply(
-            X = 1:filtros$n_char,
-            FUN = function(i) {
-              return(!input[[paste0("filtro_char_columna_", i)]] %in%
-                c("Ninguno", ""))
-            }
-          )
-        )
-
-        n_filtros_char <- sum(inputs_filtros_char)
-
-        lapply(
-          X = (1:filtros$n_char)[inputs_filtros_char],
-          FUN = function(i) {
-            valores_filtro <- input[[paste0("filtro_char_valor_", i)]]
+      lapply(
+        X = 1:max_char,
+        FUN = function(i) {
+          observe({
             columna <- input[[paste0("filtro_char_columna_", i)]]
-            if (input[[paste0("filtro_char_incluir_", i)]]) {
-              tabla <<- tabla %>%
-                dplyr::filter(!!as.name(columna) %in% valores_filtro)
+            filtro_id <- paste0(id, "-", i)
+            if (is.null(columna)) columna <- "Ninguno"
+            if (columna %in% c("Ninguno", "")) {
+              datos$mod_rm(id = filtro_id)
             } else {
-              tabla <<- tabla %>%
-                dplyr::filter(!(!!as.name(columna) %in% valores_filtro))
+              incluir <- input[[paste0("filtro_char_incluir_", i)]]
+              valor <- input[[paste0("filtro_char_valor_", i)]]
+              filtro_function <- function(.data) {
+                if (incluir) {
+                  return(dplyr::filter(.data, !!as.name(columna) %in% !!valor))
+                }
+                return(dplyr::filter(.data, !(!!as.name(columna) %in% !!valor)))
+              }
+              datos$mod_add(
+                id = filtro_id,
+                priority = 10,
+                .f = c(filtro_function)
+              )
             }
-          }
-        )
-
-        n_filtros_total <- n_filtros_char
-
-        showNotification(
-          ui = paste("Se aplicaron", n_filtros_total, "filtros."),
-          duration = 4
-        )
-
-        return(tabla)
-
-      })
-
-      return(tbl_return)
+          }) %>%
+            bindEvent(gargoyle::watch(id))
+        }
+      )
 
     }
   )
@@ -224,8 +202,10 @@ filtros_discretos_server <- function(tbl_reactive, tbl_name, id, cache,
 
 addPreserveSearch <- function(x) {
   preserve_search <- htmltools::htmlDependency(
-    "preserve_search", "1.0", "deps",
-    script = "preserve_search.js",
+    name = "preserve_search",
+    version = "1.0",
+    src = system.file("deps", package = "proyaisComponents"),
+    script = "preserve_search-1.0.js",
     stylesheet = "filtros.css"
   )
   htmltools::attachDependencies(
