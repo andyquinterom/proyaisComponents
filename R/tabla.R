@@ -5,6 +5,18 @@ tabla <- R6::R6Class(
     initialize = function(.data) {
       self$base <- .data
       self$tabla <- .data
+      self$mod_list <- tibble::tibble(
+        id = character(0),
+        priority = integer(0),
+        f = list()
+      )
+      self$colnames <- colnames(.data)
+      self$colnames_num <- colnames(
+        dplyr::select_if(
+          dplyr::collect(head(.data, 0)),
+          is.numeric
+        )
+      )
     },
     reset = function() {
       self$tabla <- self$base
@@ -16,11 +28,7 @@ tabla <- R6::R6Class(
         f = list()
       )
     },
-    mod_list = tibble::tibble(
-      id = character(0),
-      priority = integer(0),
-      f = list()
-    ),
+    mod_list = NULL,
     mod_add = function(id, priority, .f) {
       new_row <- tibble::tibble(
         id = id,
@@ -56,6 +64,8 @@ tabla <- R6::R6Class(
       return(digest::digest(self$tabla, algo = "sha256"))
     },
     base = NULL,
-    tabla = NULL
+    tabla = NULL,
+    colnames = NULL,
+    colnames_num = NULL
   )
 )
