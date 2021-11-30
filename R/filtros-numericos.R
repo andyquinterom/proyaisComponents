@@ -6,16 +6,16 @@
 filtros_numericos_ui <- function(id) {
   ns <- shiny::NS(id)
 
-  tags$div(
+  shiny::tags$div(
     class = "filtros",
     shinyWidgets::actionGroupButtons(
       inputIds = ns(c("filtros_num_add", "filtros_num_rm")),
       labels = c("+", "-"),
       size = "sm"
     ),
-    tags$br(),
-    tags$br(),
-    tags$div(
+    shiny::tags$br(),
+    shiny::tags$br(),
+    shiny::tags$div(
       id = ns("filtros_num")
     ),
   )
@@ -26,15 +26,15 @@ filtros_numericos_ui <- function(id) {
 #'
 #' @param id ID del módulo
 #' @param datos Objecto de class "tabla mutable"
-#' @param cache ReactiveValues para el cache de shinyCache
 #' @param max_num Número de filtros máximo
 #' @description Filtros se aplican con un trigger con el ID del módulo.
+#' @importFrom magrittr %>%
 #' @export
-filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
+filtros_numericos_server <- function(id, datos, max_num = 20) {
 
   ns <- shiny::NS(id)
 
-  moduleServer(
+  shiny::moduleServer(
     id = id,
     module = function(input, output, session) {
       # cantidad de filtros numericos
@@ -42,41 +42,41 @@ filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
 
       gargoyle::init(id, ns("actualizar"))
 
-      filtros <- reactiveValues(
+      filtros <- shiny::reactiveValues(
         n_num = 0
       )
 
-      observe({
+      shiny::observe({
         filtros$n_char <- 0
         for (i in seq_len(max_num)) {
-          updateSelectizeInput(
+          shiny::updateSelectizeInput(
             inputId = paste0("filtro_num_columna_", i),
             selected = "Ninguno",
             choices = c("Ninguno", datos$colnames_num)
           )
-          updateNumericInput(
+          shiny::updateNumericInput(
             inputId = paste0("filtro_num_min_", i),
             value = NA
           )
-          updateNumericInput(
+          shiny::updateNumericInput(
             inputId = paste0("filtro_num_max_", i),
             value = NA
           )
         }
       }) %>%
-        bindEvent(watch(ns("actualizar")))
+        shiny::bindEvent(gargoyle::watch(ns("actualizar")))
 
-      observe({
+      shiny::observe({
         if (filtros$n_num < max_num) {
-          insertUI(
+          shiny::insertUI(
             selector = paste0("#", ns("filtros_num")),
             where = "beforeEnd",
-            ui = tags$div(
+            ui = shiny::tags$div(
               id = ns(paste0("filtro_num_", filtros$n_num + 1)),
-              fluidRow(
-                column(
+              shiny::fluidRow(
+                shiny::column(
                   width = 5,
-                  selectizeInput(
+                  shiny::selectizeInput(
                     inputId = ns(paste(
                       "filtro_num_columna",
                       filtros$n_num + 1,
@@ -88,13 +88,13 @@ filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
                     multiple = FALSE
                   )
                 ),
-                column(width = 2),
-                column(
+                shiny::column(width = 2),
+                shiny::column(
                   width = 5,
-                  fluidRow(
-                    column(
+                  shiny::fluidRow(
+                    shiny::column(
                       width = 6,
-                      numericInput(
+                      shiny::numericInput(
                         inputId = ns(
                           paste0("filtro_num_min_", filtros$n_num + 1)
                         ),
@@ -103,9 +103,9 @@ filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
                         min = 0,
                         max = 0,
                         width = "100%")),
-                    column(
+                    shiny::column(
                       width = 6,
-                      numericInput(
+                      shiny::numericInput(
                         inputId = ns(
                           paste0("filtro_num_max_", filtros$n_num + 1)
                         ),
@@ -123,39 +123,39 @@ filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
           )
           filtros$n_num <- filtros$n_num + 1
         } else {
-          showNotification(
+          shiny::showNotification(
             "No se pueden insertar más filtros",
             type = "error"
           )
         }
       }) %>%
-        bindEvent(input$filtros_num_add, TRUE)
+        shiny::bindEvent(input$filtros_num_add, TRUE)
 
-      observe({
+      shiny::observe({
         if (filtros$n_num > 0) {
-          updateSelectizeInput(
+          shiny::updateSelectizeInput(
             inputId = paste0("filtro_num_columna_", filtros$n_num),
             selected = "Ninguno"
           )
-          removeUI(
+          shiny::removeUI(
             selector = glue::glue(
               "#{ ns(paste0('filtro_num_', filtros$n_num)) }"
             )
           )
           filtros$n_num <- filtros$n_num - 1
         } else {
-          showNotification(
+          shiny::showNotification(
             "Se requiere por lo menos un filtro",
             type = "error"
           )
         }
       }) %>%
-        bindEvent(input$filtros_num_rm)
+        shiny::bindEvent(input$filtros_num_rm)
 
       lapply(
         X = 1:max_num,
         FUN = function(i) {
-          observe({
+          shiny::observe({
             columna <- input[[paste0("filtro_num_columna_", i)]]
             filtro_id <- paste0(id, "-", i)
             if (is.null(columna)) columna <- "Ninguno"
@@ -184,7 +184,7 @@ filtros_numericos_server <- function(id, datos, cache, max_num = 20) {
               )
             }
           }) %>%
-            bindEvent(gargoyle::watch(id))
+            shiny::bindEvent(gargoyle::watch(id))
         }
       )
 

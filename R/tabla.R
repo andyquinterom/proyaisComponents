@@ -1,3 +1,4 @@
+#' @importFrom magrittr %>%
 #' @export
 tabla <- R6::R6Class(
   classname = "tabla mutable",

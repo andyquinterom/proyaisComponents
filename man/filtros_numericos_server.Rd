@@ -4,14 +4,12 @@
 \alias{filtros_numericos_server}
 \title{Servidor para filtros numéricos}
 \usage{
-filtros_numericos_server(id, datos, cache, max_num = 20)
+filtros_numericos_server(id, datos, max_num = 20)
 }
 \arguments{
 \item{id}{ID del módulo}
 
 \item{datos}{Objecto de class "tabla mutable"}
-
-\item{cache}{ReactiveValues para el cache de shinyCache}
 
 \item{max_num}{Número de filtros máximo}
 }
