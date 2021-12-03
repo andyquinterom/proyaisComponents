@@ -9,7 +9,7 @@ filtros_discretos_server(id, datos, cache, max_char = 20)
 \arguments{
 \item{id}{ID del módulo}
 
-\item{datos}{Objecto de class "tabla mutable"}
+\item{datos}{Objecto de class "tabla_mutable"}
 
 \item{cache}{ReactiveValues para el cache de shinyCache}
 

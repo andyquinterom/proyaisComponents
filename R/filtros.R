@@ -32,7 +32,7 @@ filtros_discretos_ui <- function(id) {
 #' Servidor para filtros discretos
 #'
 #' @param id ID del módulo
-#' @param datos Objecto de class "tabla mutable"
+#' @param datos Objecto de class "tabla_mutable"
 #' @param cache ReactiveValues para el cache de shinyCache
 #' @param max_char Número de filtros máximo
 #' @importFrom magrittr %>%

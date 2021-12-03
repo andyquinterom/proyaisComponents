@@ -25,7 +25,7 @@ filtros_numericos_ui <- function(id) {
 #' Servidor para filtros numéricos
 #'
 #' @param id ID del módulo
-#' @param datos Objecto de class "tabla mutable"
+#' @param datos Objecto de class "tabla_mutable"
 #' @param max_num Número de filtros máximo
 #' @description Filtros se aplican con un trigger con el ID del módulo.
 #' @importFrom magrittr %>%

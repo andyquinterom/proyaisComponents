@@ -9,7 +9,7 @@ filtros_numericos_server(id, datos, max_num = 20)
 \arguments{
 \item{id}{ID del módulo}
 
-\item{datos}{Objecto de class "tabla mutable"}
+\item{datos}{Objecto de class "tabla_mutable"}
 
 \item{max_num}{Número de filtros máximo}
 }
