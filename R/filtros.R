@@ -35,6 +35,16 @@ filtros_discretos_ui <- function(id) {
 #' @param datos Objecto de class "tabla_mutable"
 #' @param cache ReactiveValues para el cache de shinyCache
 #' @param max_char Número de filtros máximo
+#' @details
+#' Para poder aplicar los filtros debe llamar a un trigger con el ID del módulo.
+#' En caso de que se actualice el objeto de tabla mutable, se trendra que llamar
+#' un trigger con el siguiente formato id-actualizar. Este reseteará el
+#' UI del módulo para adaptarse a la nueva tabla.
+#' @examples
+#' # Para actualizar el módulo a una nueva tabla mutable
+#' gargoyle::trigger("id-actualizar")
+#' # Para aplicar los filtros y meterlos en la lista de modificaciones
+#' gargoyle::trigger("id")
 #' @importFrom magrittr %>%
 #' @description Filtros se aplican con un trigger con el ID del módulo.
 #' @export
