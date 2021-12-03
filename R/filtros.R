@@ -46,6 +46,7 @@ filtros_discretos_ui <- function(id) {
 #' # Para aplicar los filtros y meterlos en la lista de modificaciones
 #' gargoyle::trigger("id")
 #' @importFrom magrittr %>%
+#' @import shiny
 #' @description Filtros se aplican con un trigger con el ID del módulo.
 #' @export
 filtros_discretos_server <- function(id, datos, cache, max_char = 20) {
